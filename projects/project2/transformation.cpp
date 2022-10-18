@@ -72,6 +72,15 @@ Transformation::Transformation(const Options& options): Application(options) {
 	initShader();
 }
 
+//!wave to get a square wave with small = s, big = b, gia = k
+float wave(float k, float s, float b){
+	float time = (float)glfwGetTime();
+	float mid = (s + b) / 2;
+	float amp = (b - s) / 2;		// amplitude
+	float wave = abs(fmod(k * time, 2 * 2 * amp) - 2 * amp) + mid - amp;
+	return wave;
+}
+
 void Transformation::handleInput() {
 	// update bunnies position / rotation / scale here
 	const glm::vec3 velocity = { 0.0f, 2.0f, 0.0f };
@@ -81,24 +90,15 @@ void Transformation::handleInput() {
 	// TODO: update transformation attributes
 	// write your code here
 	// --------------------------------------------------
-	for (std::size_t i = 0; i < _bunnies.size(); i++){
 
-
-
-	}
-	// _positions[i] = ...
-	// _rotateAngles[i] = ...
-	// _scales[i] = ...
-	// --------------------------------------------------
-}
-
-//!wave to get a square wave with small = s, big = b, gia = k
-float wave(float k, float s, float b){
 	float time = (float)glfwGetTime();
-	float mid = (s + b) / 2;
-	float amp = (b - s) / 2;		// amplitude
-	float wave = abs(fmod(k * time, 2 * 2 * amp) - 2 * amp) + mid - amp;
-	return wave;
+	// std::cout << time << std::endl;
+	// std::cout << i - 1 << std::endl;		// size_t
+	_positions[0].y = 5.0f * wave(0.5, -1, 1);
+	_rotateAngles[1] = time;
+	_scales[2] = wave(0.5, 0.5, 1.5) * glm::vec3(1.0f);
+
+	// --------------------------------------------------
 }
 
 void Transformation::renderFrame() {
@@ -141,32 +141,39 @@ void Transformation::renderFrame() {
 		// TODO: calculate the translation, rotation, scale matrices
 		// change your code here
 		// -----------------------------------------------
+
 		// x_init = vec4(1.0f, 0, 0, 0);
 		// y_init = vec4(0, 1.0f, 0, 0);
 		// z_init = vec4(0, 0, 1.0f, 0);
 		// w_init = vec4(0, 0, 0, 1.0f);
 		// x_tran = vec4(1.0f, 0, 0, 0.5f * (i - 1));
 		glm::mat4 mat4_init = glm::mat4(1.0f);
-		float time = (float)glfwGetTime();
-		// std::cout << time << std::endl;
-		// std::cout << i - 1 << std::endl;		// size_t
+
 		// @translation
-		glm::mat4 translation = glm::translate(mat4_init, glm::vec3(10.0f*((int)i - 1), 0.0f, 0.0f));
-		if (i == 0){
-			translation = glm::translate(translation, glm::vec3(0.0f, 5.0f * wave(0.5, -1, 1), 0.0f));
-		}
+
+		// std::cout << _positions[i][1] << std::endl;
+		// it is by column
+		glm::mat4 translation = glm::mat4(
+			1.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f, 0.0f,
+			(float)_positions[i][0], (float)_positions[i][1], (float)_positions[i][2], 1.0f
+		);
+
 		// @rotation
 		glm::mat4 rotation = mat4_init;
-		if (i == 1){
-			rotation = glm::rotate(mat4_init, time, glm::vec3(0.0f, 1.0f, 0.0f));
-		}
-		// glm::mat4 translation = glm::mat4(1.0f + i * 0.3f);
+		// if (i == 1){
+		// 	rotation = glm::rotate(mat4_init, time, glm::vec3(0.0f, 1.0f, 0.0f));
+		// }
+		rotation = glm::rotate(rotation, _rotateAngles[i], _rotateAxis[i]);
+
 		// @scale
 		glm::mat4 scale = mat4_init;
-		if (i == 2){
-			scale = glm::scale(mat4_init, glm::vec3(0.5f * wave(0.5, 1, 3)));
-		}
-		// glm::mat4 translation = glm::mat4(1.0f + i * 0.3f);
+		// if (i == 2){
+		// 	scale = glm::scale(mat4_init, glm::vec3(0.5f * wave(0.5, 1, 3)));
+		// }
+		scale = glm::scale(scale, _scales[i]);
+
 		// ------------------------------------------------
 
 		glm::mat4 model = translation * rotation * scale;
