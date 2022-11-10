@@ -34,7 +34,7 @@ SceneRoaming::SceneRoaming(const Options& options): Application(options) {
 }
 
 void SceneRoaming::handleInput() {
-	constexpr float cameraMoveSpeed = 5.0f;
+	constexpr float cameraMoveSpeed = 0.05f;
 	constexpr float cameraRotateSpeed = 0.02f;
 
 	if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
@@ -51,6 +51,9 @@ void SceneRoaming::handleInput() {
 	}
 
 	Camera* camera = _cameras[activeCameraIndex].get();
+	glm::vec3 cameraFront = camera->transform.rotation * glm::vec3(0.0f, 0.0f, -1.0f);
+	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	glm::vec3 cameraRight = camera->transform.rotation * glm::vec3(1.0f, 0.0f, 0.0f);
 
 	if (_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
 		std::cout << "W" << std::endl;
@@ -58,6 +61,7 @@ void SceneRoaming::handleInput() {
 		// write your code here
 		// -------------------------------------------------
 		// camera->transform.position = ...;
+		camera->transform.position += cameraFront * cameraMoveSpeed;
 		// -------------------------------------------------
 	}
 
@@ -66,7 +70,7 @@ void SceneRoaming::handleInput() {
 		// TODO: move the camera in its left direction
 		// write your code here
 		// -------------------------------------------------
-		// camera->transform.position = ...;
+		camera->transform.position -= cameraRight * cameraMoveSpeed;
 		// -------------------------------------------------
 	}
 
@@ -75,7 +79,7 @@ void SceneRoaming::handleInput() {
 		// TODO: move the camera in its back direction
 		// write your code here
 		// -------------------------------------------------
-		// camera->transform.position = ...;
+		camera->transform.position -= cameraFront * cameraMoveSpeed;
 		// -------------------------------------------------
 	}
 
@@ -84,9 +88,16 @@ void SceneRoaming::handleInput() {
 		// TODO: move the camera in its right direction
 		// write your code here
 		// -------------------------------------------------
-		// camera->transform.position = ...;
+		camera->transform.position += cameraRight * cameraMoveSpeed;
 		// -------------------------------------------------
 	}
+	// std::cout << camera->transform.position.x << std::endl;
+
+	float xoffset;
+	// static float yaw = 0;
+	float yoffset;
+	// static float pitch = 0;
+	float rotateAngle;
 
 	if (_input.mouse.move.xNow != _input.mouse.move.xOld) {
 		std::cout << "mouse move in x direction" << std::endl;
@@ -96,6 +107,21 @@ void SceneRoaming::handleInput() {
 		// write your code here
 		// -----------------------------------------------------------------------------
 		// camera->transform.rotation = ...
+		xoffset = _input.mouse.move.xNow - _input.mouse.move.xOld;
+		xoffset *= cameraRotateSpeed;
+		rotateAngle = glm::radians(xoffset);
+		// yaw += xoffset;
+
+		// 绝对于y轴旋转 注意是绝对的
+		camera->transform.rotation = glm::quat(-rotateAngle * cameraUp) * camera->transform.rotation;
+
+		// std::cout << camera->transform.rotation.x << std::endl;
+		// std::cout << camera->transform.rotation.y << std::endl;
+		// std::cout << camera->transform.rotation.z << std::endl;
+		// std::cout << camera->transform.rotation.w << std::endl;
+		// std::cout << xoffset << std::endl;
+
+		// camera->transform.rotation = glm::quat(0, xoffset / 2, 0, 1) * camera->transform.rotation;
 		// -----------------------------------------------------------------------------
 	}
 
@@ -106,7 +132,15 @@ void SceneRoaming::handleInput() {
 		// hint2: mouse_movement_in_y_direction = _input.mouse.move.yNow - _input.mouse.move.yOld
 		// write your code here
 		// -----------------------------------------------------------------------------
-		// camera->transform.rotation = ...
+		yoffset = -_input.mouse.move.yNow + _input.mouse.move.yOld;
+		yoffset *= cameraRotateSpeed;
+		rotateAngle = glm::radians(yoffset);
+
+		// 绝对于y轴旋转 注意是绝对的
+		camera->transform.rotation = glm::quat(rotateAngle * cameraRight) * camera->transform.rotation;
+
+		// camera->transform.rotation = glm::quat(xoffset / 2, 0, 0, 1) * camera->transform.rotation;
+
 		// -----------------------------------------------------------------------------
 	}
 
