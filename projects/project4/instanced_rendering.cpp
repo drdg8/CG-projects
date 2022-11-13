@@ -62,6 +62,33 @@ InstancedRendering::InstancedRendering(const Options& options): Application(opti
 	// write your code here
 	// ---------------------------------------------------------
 	// glXXX(_instanceBuffer); ... 
+
+    glGenBuffers(1, &_instanceBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, _instanceBuffer);
+    glBufferData(GL_ARRAY_BUFFER, _amount * sizeof(glm::mat4), &_modelMatrices[0], GL_STATIC_DRAW);
+
+    // for (unsigned int i = 0; i < _amount; i++)
+    // {
+	unsigned int VAO = _asternoid->getVao();
+	glBindVertexArray(VAO);
+	// set attribute pointers for matrix (4 times vec4)
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+	glEnableVertexAttribArray(5);
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+	glEnableVertexAttribArray(6);
+	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+	glVertexAttribDivisor(3, 1);
+	glVertexAttribDivisor(4, 1);
+	glVertexAttribDivisor(5, 1);
+	glVertexAttribDivisor(6, 1);
+
+	glBindVertexArray(0);
+    // }
+
 	// ---------------------------------------------------------
 }
 
@@ -198,6 +225,15 @@ void InstancedRendering::renderFrame() {
 		// ---------------------------------------------------------
 		// ...
 		// glDraw...(...);
+
+		// _asternoidInstancedShader->setUniformMat4("model", _modelMatrices[0]);
+		// for (unsigned int i = 0; i < _amount; i++)
+  //       {
+		// 	_asternoidInstancedShader->setUniformMat4("model", _modelMatrices[i]);
+  //       }
+		glBindVertexArray(_asternoid->getVao());
+		glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(3*_asternoid->getFaceCount()), GL_UNSIGNED_INT, 0, _amount);
+		glBindVertexArray(0);
 		// ---------------------------------------------------------
 		break;
 	}
