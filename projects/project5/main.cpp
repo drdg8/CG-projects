@@ -26,6 +26,8 @@ int main(int argc, char* argv[]) {
 		app.run();
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
+		while (1) { /* code */ }
+		
 		return EXIT_FAILURE;
 	} catch (...) {
 		std::cerr << "Unknown Error" << std::endl;
