@@ -82,6 +82,11 @@ float wave(float k, float s, float b){
 }
 
 void Transformation::handleInput() {
+	if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+		glfwSetWindowShouldClose(_window, true);
+		return ;
+	}
+	
 	// update bunnies position / rotation / scale here
 	const glm::vec3 velocity = { 0.0f, 2.0f, 0.0f };
 	const float angulerVelocity = 1.0f;

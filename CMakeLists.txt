@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -14,6 +14,8 @@ add_subdirectory(./external/glad)
 set_target_properties(glad PROPERTIES FOLDER "lib")
 
 add_subdirectory(./external/glm)
+
+set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "utility")
 
 set(GLFW_BUILD_EXAMPLES OFF)
 set(GLFW_BUILD_TESTS OFF)
@@ -62,7 +64,17 @@ add_subdirectory(./projects/project6)
 set_target_properties(project6 PROPERTIES FOLDER "project")
 
 add_subdirectory(./projects/bonus1)
-set_target_properties(bonus1 PROPERTIES FOLDER "project")
+set_target_properties(bonus1 PROPERTIES FOLDER "bonus")
 
 add_subdirectory(./projects/bonus2)
-set_target_properties(bonus2 PROPERTIES FOLDER "project")
+set_target_properties(bonus2 PROPERTIES FOLDER "bonus")
+
+add_subdirectory(./projects/bonus3)
+set_target_properties(bonus3 PROPERTIES FOLDER "bonus")
+
+add_subdirectory(./projects/bonus4)
+set_target_properties(bonus4 PROPERTIES FOLDER "bonus")
+
+add_subdirectory(./projects/bonus5)
+set_target_properties(bonus5 PROPERTIES FOLDER "bonus")
+

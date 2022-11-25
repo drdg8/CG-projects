@@ -9,7 +9,7 @@
 #include "../base/glsl_program.h"
 #include "../base/camera.h"
 #include "../base/light.h"
-#include "../base/texture.h"
+#include "../base/texture2d.h"
 
 struct DrawElementsIndirectCommand {
 	unsigned int count;
@@ -73,7 +73,6 @@ private:
 	GLenum _transformFeedback = {};
 	GLenum _transformFeedbackResultBuffer = {};
 	std::unique_ptr<GLSLProgram> _frustumCullingShader;
-	GLenum _transformFeedbackRenderVao = {};
 
 	// indirect draw resources
 	bool _indirectDrawEnabled = false;
