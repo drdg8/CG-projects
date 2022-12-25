@@ -137,7 +137,7 @@ void TextureMapping::initBlendShader() {
 	// + lambert shading, i.e the color is affected by the light
 	// write your code here
 	// -----------------------------------------------------------------
-	const char* fsCode =
+	const char *fsCode =
 		"#version 330 core\n"
 		"in vec3 fPosition;\n"
 		"in vec3 fNormal;\n"
@@ -155,12 +155,29 @@ void TextureMapping::initBlendShader() {
 		"	float blend;\n"
 		"};\n"
 
+		// "uniform vec3 viewPos;\n"
 		"uniform Material material;\n"
 		"uniform DirectionalLight light;\n"
 		"uniform sampler2D mapKds[2];\n"
 
+		"vec3 calcDirectionalLight(vec3 normal, vec3 viewDir, vec3 material_kd) {\n"
+		"	vec3 lightDir = normalize(-light.direction);\n"
+		"	vec3 diffuse = light.color * max(dot(lightDir, normal), 0.0f) * material_kd;\n"
+		// "	vec3 redirectDir = reflect(-lightDir, normal);\n"
+		// "	float spe = pow(max(dot(redirectDir, viewDir), 0), material.ns);\n"
+		// "	vec3 speculer = light.color * spe * material.ks;\n"
+		// "	vec3 result = speculer + diffuse;\n"
+		"	return light.intensity * diffuse;\n"
+		"}\n"
+
 		"void main() {\n"
-		"	color = texture(mapKds[0], fTexCoord);\n"
+		"	vec3 normal = normalize(fNormal);\n"
+		// "	vec3 viewDir = normalize(viewPos - fPosition);\n"
+		"	vec3 viewDir = normalize(- fPosition);\n"
+		"	vec3 light_color = calcDirectionalLight(normal, viewDir, material.kds[0]*(1-material.blend) + material.kds[1]*material.blend);\n"
+		"	color = mix(texture(mapKds[0], fTexCoord), texture(mapKds[1], fTexCoord), material.blend) * vec4(light_color, 1.0f);\n"
+		// "	color = mix(texture(mapKds[0], fTexCoord), texture(mapKds[1], fTexCoord), material.blend);\n"
+		// "	color = texture(mapKds[0], fTexCoord);\n"
 		"}\n";
 	//----------------------------------------------------------------
 
@@ -189,7 +206,7 @@ void TextureMapping::initCheckerShader() {
 	// hint: use the fTexCoord to determine the color
 	// modify your code here
 	// --------------------------------------------------------------
-	const char* fsCode =
+	const char *fsCode =
 		"#version 330 core\n"
 		"in vec2 fTexCoord;\n"
 		"out vec4 color;\n"
@@ -202,7 +219,13 @@ void TextureMapping::initCheckerShader() {
 		"uniform Material material;\n"
 
 		"void main() {\n"
-		"	color = vec4(material.colors[0], 1.0f);\n"
+		"	int x = int(fTexCoord.x * material.repeat) % 2;\n"
+		"	int y = int(fTexCoord.y * material.repeat) % 2;\n"
+		"	if((x + y) % 2){\n"
+		"		color = vec4(material.colors[1], 1.0f);\n"
+		"	}else{\n"
+		"		color = vec4(material.colors[0], 1.0f);\n"
+		"	}\n"
 		"}\n";
 	//----------------------------------------------------------------
 
@@ -263,6 +286,8 @@ void TextureMapping::renderFrame() {
 		_blendShader->setUniformMat4("projection", projection);
 		_blendShader->setUniformMat4("view", view);
 		_blendShader->setUniformMat4("model", _sphere->transform.getLocalMatrix());
+		// 2.5 camara position
+		// _blendShader->setUniformVec3("viewPos", _camera->transform.position);
 		// 3. transfer light attributes to gpu
 		_blendShader->setUniformVec3("light.direction", _light->transform.getFront());
 		_blendShader->setUniformVec3("light.color", _light->color);
@@ -274,10 +299,10 @@ void TextureMapping::renderFrame() {
 		// 4.2 transfer blend cofficient to gpu
 		_blendShader->setUniformFloat("material.blend", _blendMaterial->blend);
 		// 4.3 TODO: enable textures and transform textures to gpu
-		// write your code here
-		//----------------------------------------------------------------
-		// ...
-		//----------------------------------------------------------------
+		_blendMaterial->mapKds[0]->bind(0);
+		_blendMaterial->mapKds[1]->bind(1);
+		_blendShader->setUniformInt("mapKds[0]", 0);
+		_blendShader->setUniformInt("mapKds[1]", 1);
 		break;
 	case RenderMode::Checker:
 		// 1. use the shader
