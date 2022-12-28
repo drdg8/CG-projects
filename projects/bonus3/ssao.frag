@@ -2,7 +2,7 @@
 layout(location = 0) out float ssaoResult;
 
 const int nSamples = 64;
-const float radius = 1.0f;
+const float radius = 4.0f;
 
 uniform int screenWidth;
 uniform int screenHeight;
@@ -14,13 +14,13 @@ uniform mat4 projection;
 
 in vec2 screenTexCoord;
 
-const vec2 noiseScale = vec2(screenWidth/4.0f, screenHeight/4.0f); 
+vec2 noiseScale = vec2(screenWidth/4.0f, screenHeight/4.0f); 
 
 void main() {
     // TODO: perform SSAO
-    vec3 fragPos = texture(gPosition, TexCoords).xyz;
-    vec3 normal = texture(gNormal, TexCoords).rgb;
-    vec3 randomVec = texture(noiseMap, TexCoords * noiseScale).xyz;
+    vec3 fragPos = texture(gPosition, screenTexCoord).xyz;
+    vec3 normal = texture(gNormal, screenTexCoord).rgb;
+    vec3 randomVec = texture(noiseMap, screenTexCoord * noiseScale).xyz;
     // Create TBN change-of-basis matrix: from tangent-space to view-space
     vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
     vec3 bitangent = cross(normal, tangent);

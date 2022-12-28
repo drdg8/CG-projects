@@ -77,18 +77,34 @@ foreach(shader ${PROJECT_SHADERS})
     )
 endforeach(shader)
 
-if(WIN32)
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-elseif(UNIX)
-if (CMAKE_BUILD_TYPE MATCHES Debug)
+if(MSVC)
     set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/Debug")
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+elseif(XCODE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 else()
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/Release")
+    if (CMAKE_BUILD_TYPE MATCHES Debug)
+        set_target_properties(${PROJECT_NAME} PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/Debug")
+    else()
+        set_target_properties(${PROJECT_NAME} PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/Release")
+    endif()
 endif()
-endif()
+
+# if(WIN32)
+# set_target_properties(${PROJECT_NAME} PROPERTIES
+#     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+# elseif(UNIX)
+# if (CMAKE_BUILD_TYPE MATCHES Debug)
+#     set_target_properties(${PROJECT_NAME} PROPERTIES
+#     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/Debug")
+# else()
+#     set_target_properties(${PROJECT_NAME} PROPERTIES
+#     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/Release")
+# endif()
+# endif()
 
 target_link_libraries(bonus3 glm)
 
