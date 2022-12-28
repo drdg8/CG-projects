@@ -220,26 +220,26 @@ void Transparency::renderWithAlphaBlending() {
 	//         This pass will record the depth info of the object to avoid backward parts to
 	//         be rendered.
 	// write your code here
-	// ------------------------------------------------------------------------
-	// ...
-	// ------------------------------------------------------------------------
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glEnable(GL_DEPTH_TEST);
 	
 	_knot->draw();
 	
 	// pass 2: Write the color buffer using the zbuffer info from pass 1 with blending, 
 	//		   while leaving the depth buffer unmodified.
 	// write your code here
-	// ------------------------------------------------------------------------
-	// ...
-	// ------------------------------------------------------------------------
+	glEnable(GL_BLEND);
+	glDepthFunc(GL_LEQUAL);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	_knot->draw();
 	// restore: don't forget to restore the OpenGL state before pass 1, which will avoid side effects
 	//          to the object rendering afterwards.
 	// write your code here
-	// ------------------------------------------------------------------------
-	// ...
-	// ------------------------------------------------------------------------
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
 }
 
 void Transparency::renderWithDepthPeeling() {
@@ -280,10 +280,47 @@ void Transparency::renderWithDepthPeeling() {
 	// hint7: if it is to difficult for you, just use a predefined MAX_LAYER_NUM to end looping
 	// write your code here
 	// ------------------------------------------------------------------------
-	// for (int layer = 1; layer < MAX_LAYER_NUM; ++layer) {
-	// 	   // 2.1 peeling pass
-	// 	   // 2.2 blending pass
-	// }
+	#define MAX_LAYER_NUM 10
+	for (int layer = 1; layer < MAX_LAYER_NUM; ++layer) {
+		// 2.1 peeling pass
+		glEnable(GL_DEPTH_TEST);
+		_fbos[layer % 2]->bind();
+		glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		_depthTextures[(layer + 1) % 2]->bind(0);
+		_depthPeelingShader->use();
+		_depthPeelingShader->setUniformMat4("projection", projection);
+		_depthPeelingShader->setUniformMat4("view", view);
+		_depthPeelingShader->setUniformMat4("model", _knot->transform.getLocalMatrix());
+		_depthPeelingShader->setUniformVec3("material.albedo", _knotMaterial->albedo);
+		_depthPeelingShader->setUniformFloat("material.ka", _knotMaterial->ka);
+		_depthPeelingShader->setUniformVec3("material.kd", _knotMaterial->kd);
+		_depthPeelingShader->setUniformFloat("material.transparent", _knotMaterial->transparent);
+		_depthPeelingShader->setUniformVec3("directionalLight.direction", _light->transform.getFront());
+		_depthPeelingShader->setUniformFloat("directionalLight.intensity", _light->intensity);
+		_depthPeelingShader->setUniformVec3("directionalLight.color", _light->color);
+
+		_depthPeelingShader->setUniformInt("depthTexture", 0);
+		_depthPeelingShader->setUniformInt("windowExtent.width", _windowWidth);
+		_depthPeelingShader->setUniformInt("windowExtent.height", _windowHeight);
+		
+		_knot->draw();
+
+		// 2.2 blending pass
+		glEnable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
+		glBlendEquation(GL_FUNC_ADD); 
+		glBlendFuncSeparate(GL_DST_ALPHA, GL_ONE, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
+		_colorBlendFbo->bind();
+		_colorTextures[layer % 2]->bind(0);
+		_depthPeelingBlendShader->use();
+		_depthPeelingBlendShader->setUniformInt("blendTexture", 0);
+		_depthPeelingBlendShader->setUniformInt("windowExtent.width", _windowWidth);
+		_depthPeelingBlendShader->setUniformInt("windowExtent.height", _windowHeight);
+
+		_fullscreenQuad->draw();
+		glDisable(GL_BLEND);
+	}
 	// ------------------------------------------------------------------------
 
 

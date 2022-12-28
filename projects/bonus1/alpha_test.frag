@@ -25,6 +25,8 @@ uniform sampler2D transparentTexture;
 
 void main() {
 	vec4 texColor = texture(transparentTexture, fTexCoord);
+	if (texColor.a > material.transparent)
+		discard;
 	vec3 normal = normalize(fNormal);
 	vec3 lightDir = normalize(-directionalLight.direction);
 	vec3 ambient = material.ka * material.albedo;
